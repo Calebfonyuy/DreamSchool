@@ -14,6 +14,11 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::post('/get_token', 'AuthController@get_token')->name('token');
+Route::post('/login', 'AuthController@login')->name('login');
+
+Route::group(['middleware' => ['auth:api']], function () {
+    Route::post('/logout', 'AuthController@logout')->name('logout');
+
+    Route::resource('teacher', 'TeacherController');
 });
