@@ -21,4 +21,10 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::post('/logout', 'AuthController@logout')->name('logout');
 
     Route::resource('teacher', 'TeacherController');
+
+    Route::resource('student_class', 'Classes\StudentClassController');
+
+    Route::resource('subject','Classes\SubjectController');
+
+    Route::resource('student','Students\StudentController');
 });
