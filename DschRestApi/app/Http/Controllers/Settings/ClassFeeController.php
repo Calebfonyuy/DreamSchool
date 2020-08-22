@@ -47,8 +47,10 @@ class ClassFeeController extends Controller
     {
         //
         $values = $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'student_class' => 'required|numeric|min:1',
+            'fee_amount' => 'required|numeric|min:1',
+            'registration' => 'required|numeric|min:1',
+            'pta_levy' => 'required|numeric|min:1',
+            'class_id' => 'required|numeric|min:1',
             'academic_year' => 'required|numeric|min:1'
         ]);
 
@@ -103,8 +105,10 @@ class ClassFeeController extends Controller
         }
 
         $values = $request->validate([
-            'amount' => 'required|numeric|min:1',
-            'student_class' => 'required|numeric|min:1',
+            'fee_amount' => 'required|numeric|min:1',
+            'registration' => 'required|numeric|min:1',
+            'pta_levy' => 'required|numeric|min:1',
+            'class_id' => 'required|numeric|min:1',
             'academic_year' => 'required|numeric|min:1'
         ]);
 

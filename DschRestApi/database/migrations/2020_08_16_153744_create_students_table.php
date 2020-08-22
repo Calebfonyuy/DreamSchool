@@ -35,8 +35,10 @@ class CreateStudentsTable extends Migration
             $table->string('faith',50)->nullable();
             $table->text('medical_information')->nullable();
             $table->text('picture')->nullable();
+            $table->integer('saved_by');
             $table->softDeletes();
             $table->timestamps();
+            $table->foreign('saved_by')->references('id')->on('teachers');
         });
     }
 

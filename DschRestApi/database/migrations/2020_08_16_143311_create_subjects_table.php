@@ -15,10 +15,10 @@ class CreateSubjectsTable extends Migration
     {
         Schema::create('subjects', function (Blueprint $table) {
             $table->id();
+            $table->integer('class_id');
             $table->string('title', 50);
             $table->unsignedInteger('coefficient');
             $table->boolean('compulsory')->default(false);
-            $table->integer('class_id');
             $table->softDeletes();
             $table->timestamps();
             $table->foreign('class_id')->references('id')->on('school_classes');
