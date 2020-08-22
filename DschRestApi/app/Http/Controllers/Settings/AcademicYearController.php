@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Http\Controllers\Classes;
+namespace App\Http\Controllers\Settings;
 
-use App\Classes\StudentClass;
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Settings\AcademicYear;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 
-class StudentClassController extends Controller
+class AcademicYearController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -16,7 +18,7 @@ class StudentClassController extends Controller
     public function index()
     {
         //
-        return response()->json(StudentClass::all());
+        return response()->json(AcademicYear::all());
     }
 
     /**
@@ -27,6 +29,9 @@ class StudentClassController extends Controller
     public function create()
     {
         //
+        return response()->json(
+            AcademicYear::find(AcademicYear::max('id'))
+        );
     }
 
     /**
@@ -38,22 +43,35 @@ class StudentClassController extends Controller
     public function store(Request $request)
     {
         //
-        $values= $request->validate([
-            'main_class' => 'required',
-            'class_name' => 'required',
-            'optional_subjects' => 'present'
+        if(date('m')!=7 && date('m')!=8){
+            return response()->json([
+                'status' => 0,
+                'year' => $request->all(),
+                'error' => 'New Academic year can only be created either in July or August'
+            ]);
+        }
+
+        $values = $request->validate([
+            'start_date' => 'required|date'
         ]);
 
-        if($values['optional_subjects']==1)
-            $values['optional_subjects'] = true;
-        else
-            $values['optional_subjects'] = false;
-        
-        $class = StudentClass::create($values);
-        
+        $current = AcademicYear::find(AcademicYear::max('id'));
+        $current->end_date = date('Y-m-d');
+        $current->ended_by = Auth::user()->id;
+
+        $values['started_by'] = $current->ended_by;
+
+        DB::beginTransaction();
+            $current->save();
+            $created = AcademicYear::create($values);
+        DB::commit();
+
         return response()->json([
-            'status' => 1,
-            'student_class' => $class
+            'status'=> 1,
+            'academic_years'=>[
+                'old' => $current,
+                'new' => $created
+            ]
         ]);
     }
 
@@ -66,7 +84,6 @@ class StudentClassController extends Controller
     public function show($id)
     {
         //
-        return response()->json(StudentClass::find($id));
     }
 
     /**
@@ -90,25 +107,7 @@ class StudentClassController extends Controller
     public function update(Request $request, $id)
     {
         //
-        $class = StudentClass::find($id);
-        $values= $request->validate([
-            'main_class' => 'required',
-            'class_name' => 'required',
-            'optional_subjects' => 'present'
-        ]);
-
-        if($values['optional_subjects']==1)
-            $values['optional_subjects'] = true;
-        else
-            $values['optional_subjects'] = false;
-        
-        $class->update($values);
-        $class->save();
-        
-        return response()->json([
-            'status' => 1,
-            'student_class' => $class
-        ]);
+        return null;
     }
 
     /**
@@ -120,9 +119,5 @@ class StudentClassController extends Controller
     public function destroy($id)
     {
         //
-        $class = StudentClass::find($id);
-        $class->delete();
-
-        $class->save();
     }
 }

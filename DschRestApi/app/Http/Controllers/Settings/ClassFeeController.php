@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Classes;
+namespace App\Http\Controllers\Settings;
 
-use App\Classes\SchoolClass;
-use App\Classes\Subject;
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Settings\ClassFee;
+use Illuminate\Support\Facades\Auth;
 
-class SubjectController extends Controller
+class ClassFeeController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -17,7 +17,14 @@ class SubjectController extends Controller
     public function index()
     {
         //
-        return response()->json(Subject::all());
+        $values = request()->validate([
+            'academic_year' => 'required|numeric'
+        ]);
+
+        $fees = ClassFee::where('academic_year', $values['academic_year'])
+                        ->where('statut',1)->get();
+
+        return response()->json($fees);
     }
 
     /**
@@ -40,26 +47,18 @@ class SubjectController extends Controller
     {
         //
         $values = $request->validate([
-            'title' => 'required',
-            'coefficient' => 'required',
-            'compulsory' => 'present',
-            'class_id' => 'required|numeric'
+            'amount' => 'required|numeric|min:1',
+            'student_class' => 'required|numeric|min:1',
+            'academic_year' => 'required|numeric|min:1'
         ]);
 
-        $class = SchoolClass::find($values['class_id']);
-        if(!$class->optional_subjects){
-            return response()->json([
-                'status' => 0,
-                'message' => "A class with no optional subjects cannot have a subject that is not compulsory",
-                'subject' => $values
-            ]);
-        }
+        $values['saved_by'] = Auth::user()->id;
 
-        $subject = Subject::create($values);
+        $fee = ClassFee::create($values);
 
         return response()->json([
             'statut' => 1,
-            'subject' => $subject
+            'fee' => $fee
         ]);
     }
 
@@ -72,7 +71,6 @@ class SubjectController extends Controller
     public function show($id)
     {
         //
-        return response()->json(Subject::find($id));
     }
 
     /**
@@ -96,29 +94,43 @@ class SubjectController extends Controller
     public function update(Request $request, $id)
     {
         //
-        $values = $request->validate([
-            'title' => 'required',
-            'coefficient' => 'required',
-            'compulsory' => 'present',
-            'class_id' => 'required|numeric'
-        ]);
-
-        $class = SchoolClass::find($values['class_id']);
-        if(!$class->optional_subjects){
+        $fee = ClassFee::find($id);
+        if($fee==null){
             return response()->json([
-                'status' => 0,
-                'message' => "A class with no optional subjects cannot have a subject that is not compulsory",
-                'subject' => $values
+                'statut' => 0,
+                'error' => 'Invalid Fee reference'
             ]);
         }
 
-        $subject = Subject::find($id);
-        $subject->update($values);
-        $subject->save();
+        $values = $request->validate([
+            'amount' => 'required|numeric|min:1',
+            'student_class' => 'required|numeric|min:1',
+            'academic_year' => 'required|numeric|min:1'
+        ]);
+
+        if($fee->student_class!=$values['student_class'] ||$fee->academic_year!=$values['academic_year'] ){
+            return response()->json([
+                'statut' => 0,
+                'error' => 'Class or Year information invalid for given reference',
+                'fee_values' => $values
+            ]);
+        }
+
+        if($fee->statut==0){
+            return response()->json([
+                'statut' => 0,
+                'error' => "Cannot update deleted fee reference",
+                'reference' => $id
+            ]);
+        }
+
+        $fee->amount = $values['amount'];
+        $fee->saved_by = Auth::user()->id;
+        $fee->save();
 
         return response()->json([
             'statut' => 1,
-            'subject' => $subject
+            'fee' => $fee
         ]);
     }
 
@@ -131,9 +143,5 @@ class SubjectController extends Controller
     public function destroy($id)
     {
         //
-        $subject = Subject::find($id);
-        $subject->delete();
-
-        return response()->json($subject);
     }
 }

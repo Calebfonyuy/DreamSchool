@@ -3,11 +3,10 @@
 namespace App\Http\Controllers\Classes;
 
 use App\Classes\SchoolClass;
-use App\Classes\Subject;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-class SubjectController extends Controller
+class SchoolClassController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -17,7 +16,7 @@ class SubjectController extends Controller
     public function index()
     {
         //
-        return response()->json(Subject::all());
+        return response()->json(SchoolClass::all());
     }
 
     /**
@@ -39,27 +38,22 @@ class SubjectController extends Controller
     public function store(Request $request)
     {
         //
-        $values = $request->validate([
-            'title' => 'required',
-            'coefficient' => 'required',
-            'compulsory' => 'present',
-            'class_id' => 'required|numeric'
+        $values= $request->validate([
+            'main_class' => 'required',
+            'class_name' => 'required',
+            'optional_subjects' => 'present'
         ]);
 
-        $class = SchoolClass::find($values['class_id']);
-        if(!$class->optional_subjects){
-            return response()->json([
-                'status' => 0,
-                'message' => "A class with no optional subjects cannot have a subject that is not compulsory",
-                'subject' => $values
-            ]);
-        }
-
-        $subject = Subject::create($values);
-
+        if($values['optional_subjects']==1)
+            $values['optional_subjects'] = true;
+        else
+            $values['optional_subjects'] = false;
+        
+        $class = SchoolClass::create($values);
+        
         return response()->json([
-            'statut' => 1,
-            'subject' => $subject
+            'status' => 1,
+            'class' => $class
         ]);
     }
 
@@ -72,7 +66,7 @@ class SubjectController extends Controller
     public function show($id)
     {
         //
-        return response()->json(Subject::find($id));
+        return response()->json(SchoolClass::find($id));
     }
 
     /**
@@ -96,29 +90,24 @@ class SubjectController extends Controller
     public function update(Request $request, $id)
     {
         //
-        $values = $request->validate([
-            'title' => 'required',
-            'coefficient' => 'required',
-            'compulsory' => 'present',
-            'class_id' => 'required|numeric'
+        $class = SchoolClass::find($id);
+        $values= $request->validate([
+            'main_class' => 'required',
+            'class_name' => 'required',
+            'optional_subjects' => 'present'
         ]);
 
-        $class = SchoolClass::find($values['class_id']);
-        if(!$class->optional_subjects){
-            return response()->json([
-                'status' => 0,
-                'message' => "A class with no optional subjects cannot have a subject that is not compulsory",
-                'subject' => $values
-            ]);
-        }
-
-        $subject = Subject::find($id);
-        $subject->update($values);
-        $subject->save();
-
+        if($values['optional_subjects']==1)
+            $values['optional_subjects'] = true;
+        else
+            $values['optional_subjects'] = false;
+        
+        $class->update($values);
+        $class->save();
+        
         return response()->json([
-            'statut' => 1,
-            'subject' => $subject
+            'status' => 1,
+            'class' => $class
         ]);
     }
 
@@ -131,9 +120,9 @@ class SubjectController extends Controller
     public function destroy($id)
     {
         //
-        $subject = Subject::find($id);
-        $subject->delete();
+        $class = SchoolClass::find($id);
+        $class->delete();
 
-        return response()->json($subject);
+        $class->save();
     }
 }

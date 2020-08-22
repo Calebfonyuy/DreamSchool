@@ -18,10 +18,10 @@ class CreateSubjectsTable extends Migration
             $table->string('title', 50);
             $table->unsignedInteger('coefficient');
             $table->boolean('compulsory')->default(false);
-            $table->integer('student_class_id');
+            $table->integer('class_id');
             $table->softDeletes();
             $table->timestamps();
-            $table->foreign('student_class_id')->references('id')->on('student_classes');
+            $table->foreign('class_id')->references('id')->on('school_classes');
         });
     }
 

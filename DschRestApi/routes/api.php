@@ -22,7 +22,7 @@ Route::group(['middleware' => ['auth:api']], function () {
 
     Route::resource('teacher', 'TeacherController');
 
-    Route::resource('student_class', 'Classes\StudentClassController');
+    Route::resource('class', 'Classes\SchoolClassController');
 
     Route::resource('subject','Classes\SubjectController');
 

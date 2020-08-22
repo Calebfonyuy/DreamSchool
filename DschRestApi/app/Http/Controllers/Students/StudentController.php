@@ -116,6 +116,7 @@ class StudentController extends Controller
     public function show($id)
     {
         //
+        return response()->json(Student::find($id));
     }
 
     /**
